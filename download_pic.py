@@ -4,7 +4,7 @@ import os
 import requests
 import re
 import urllib
-
+import time
 
 """
 下载策略：
@@ -17,15 +17,21 @@ import urllib
 """
 
 
-page = 0
+#page = 0
 base = "http://wallpaperswide.com"
-url = '{1}/top_wallpapers/page/{0}'.format(page,base)
+#url = '{1}/top_wallpapers/page/{0}'.format(page,base)
 resolution = ['1920x1080','2048x1152','2400x1350','2560x1440','2880x1620','3554x1999']
+interval = 300
 
 
-first = ""
+first_link = ""
+page_idx = 0
 pic_idx = 1
 
+
+def save_stat():
+    with open('.pic_status','w') as f:
+        f.write('{0}\t{1}\t{2}'.format(page_idx,pic_idx,first_link))
 
 def download_pic(link):
     pic_name = "wallpaper/" + link.split('/')[-1]
@@ -51,16 +57,89 @@ def get_pic(pic_page_url):
 
 
 
+def init():
+    with open('.pic_status','r') as f:
+        content = f.read()
+        f_s = content.split('\t')
+        page_idx = f_s[0]
+        pic_idx = f_s[1]
+        first_link = f_s[2]
 
-data = requests.get(url)
 
-pa = re.compile(r'href=".*wallpapers.html".*itemprop="significantLinks"')
-res = pa.findall(data.text)
-for rec in res:
+
+
+
+def get_first():
+    url = '{0}/top_wallpapers/page/0'.format(base)
+    data = requests.get(url)
+
+    pa = re.compile(r'href=".*wallpapers.html".*itemprop="significantLinks"')
+    res = pa.findall(data.text)
+    rec = res[0]
     pic_page_url = parse_rec(rec)
     pic_link = get_pic(pic_page_url)
-    pic_name = download_pic(pic_link)
+    return pic_link
 
 
 
-#os.system("feh --randomize --bg-fill /home/jin/Pictures/*.jpg")
+def get_cur_pic_link():
+    url = '{0}/top_wallpapers/page/{1}'.format(base,page_idx)
+    data = requests.get(url)
+
+    pa = re.compile(r'href=".*wallpapers.html".*itemprop="significantLinks"')
+    res = pa.findall(data.text)
+    try:
+        rec = res[pic_idx]
+    except Exception as e:
+        page_idx += 1
+        pic_idx -= len(rec)
+        save_stat()
+        url = '{0}/top_wallpapers/page/{1}'.format(base,page_idx)
+        data = requests.get(url)
+
+        pa = re.compile(r'href=".*wallpapers.html".*itemprop="significantLinks"')
+        res = pa.findall(data.text)
+        rec = res[pic_idx]
+    pic_page_url = parse_rec(rec)
+    pic_link = get_pic(pic_page_url)
+    return pic_link
+
+
+
+
+def update_wallpaper():
+    new_first = get_first()
+    if new_first != first_link:
+        new_wallpaper = download_pic(new_first)
+        first_link = new_first
+        save_stat()
+    else:
+        cur_link = get_cur_pic_link()
+        pic_name = "wallpaper/" + link.split('/')[-1]
+        while os.path.isfile(pic_name):
+            print("pic already exist, find next pic "+pic_name)
+            pic_idx += 1
+            save_stat()
+            cur_link = get_cur_pic_link()
+            pic_name = "wallpaper/" + link.split('/')[-1]
+        new_wallpaper = download_pic(cur_link)
+
+    os.system("feh --randomize --bg-fill {0}".format(new_wallpaper))
+
+
+
+
+
+try:
+    init()
+except Exception as e:
+    page_idx = 0
+    pic_idx = 0
+    first_link = ""
+
+
+while(True):
+    update_wallpaper()
+    time.sleep(interval)
+
+
