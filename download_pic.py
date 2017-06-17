@@ -2,14 +2,28 @@
 
 import os
 import requests
+import re
 
 page = 0
 url='http://wallpaperswide.com/top_wallpapers/page/{0}'.format(page)
 
 
-data = requests.get(url)
-print (data.text)
 
+
+def parse_rec(data):
+    herf = data.split()[0]
+    url = herf.split('=')[1].strip('"')
+    print (url)
+
+
+
+
+data = requests.get(url)
+
+pa = re.compile(r'href=".*wallpapers.html".*itemprop="significantLinks"')
+res = pa.findall(data.text)
+for rec in res:
+    parse_pic(rec)
 
 
 
