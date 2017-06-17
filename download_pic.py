@@ -53,6 +53,7 @@ class WallPaper:
 
 
     def get_pic(self,pic_page_url):
+        ret = ""
         full_url = '{0}{1}'.format(self.base,pic_page_url)
         pic_html = requests.get(full_url)
         html = pic_html.text
@@ -60,7 +61,11 @@ class WallPaper:
             pat = re.compile(r'<a target="_self".*{0}</a>'.format(resu))
             pic_url = pat.findall(html)
             for p in pic_url:
-                return p.split()[2].split('=')[1].strip('"')
+                ret = p.split()[2].split('=')[1].strip('"')
+                break
+            if ret != "":
+                break
+        return ret
 
 
 
@@ -110,11 +115,19 @@ class WallPaper:
             self.save_stat()
         else:
             cur_link = self.get_cur_pic_link()
+            while cur_link is None or cur_link == "":
+                self.pic_idx += 1
+                self.save_stat()
+                cur_link = self.get_cur_pic_link()
             pic_name = "wallpaper/" + cur_link.split('/')[-1]
             while os.path.isfile(pic_name):
                 self.pic_idx += 1
                 self.save_stat()
                 cur_link = self.get_cur_pic_link()
+                while cur_link is None or cur_link == "":
+                    self.pic_idx += 1
+                    self.save_stat()
+                    cur_link = self.get_cur_pic_link()
                 pic_name = "wallpaper/" + cur_link.split('/')[-1]
             new_wallpaper = self.download_pic(cur_link)
 
