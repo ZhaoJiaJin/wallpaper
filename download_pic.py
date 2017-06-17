@@ -3,13 +3,17 @@
 import os
 import requests
 import re
-
+import urllib
 page = 0
 base = "http://wallpaperswide.com"
 url = '{1}/top_wallpapers/page/{0}'.format(page,base)
 resolution = ['1920x1080','2048x1152','2400x1350','2560x1440','2880x1620','3554x1999']
 
 
+def download_pic(link):
+    pic_name = link.split('/')[-1]
+    urllib.request.urlretrieve('{0}{1}'.format(base,link),'wallpaper/{0}'.format(pic_name))
+    print (pic_name)
 
 
 def parse_rec(data):
@@ -38,7 +42,7 @@ res = pa.findall(data.text)
 for rec in res:
     pic_page_url = parse_rec(rec)
     pic_link = get_pic(pic_page_url)
-    print (pic_link)
+    download_pic(pic_link)
 
 
 
