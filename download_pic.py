@@ -87,7 +87,7 @@ class WallPaper:
             rec = res[self.pic_idx]
         except Exception as e:
             self.page_idx += 1
-            self.pic_idx -= len(rec)
+            self.pic_idx -= len(res)
             self.save_stat()
             url = '{0}/top_wallpapers/page/{1}'.format(self.base,self.page_idx)
             data = requests.get(url)
@@ -112,14 +112,14 @@ class WallPaper:
             cur_link = self.get_cur_pic_link()
             pic_name = "wallpaper/" + cur_link.split('/')[-1]
             while os.path.isfile(pic_name):
-                print("pic already exist, find next pic "+pic_name)
                 self.pic_idx += 1
                 self.save_stat()
                 cur_link = self.get_cur_pic_link()
                 pic_name = "wallpaper/" + cur_link.split('/')[-1]
             new_wallpaper = self.download_pic(cur_link)
 
-        os.system("feh --randomize --bg-fill {0}".format(new_wallpaper))
+        #os.system("feh --randomize --bg-fill {0}".format(new_wallpaper))
+        print (new_wallpaper)
 
 
 
