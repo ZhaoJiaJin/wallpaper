@@ -131,7 +131,7 @@ class WallPaper:
                 pic_name = "wallpaper/" + cur_link.split('/')[-1]
             new_wallpaper = self.download_pic(cur_link)
 
-        #os.system("feh --randomize --bg-fill {0}".format(new_wallpaper))
+        os.system("export DISPLAY=:0 && feh --randomize --bg-fill {0}".format(new_wallpaper))
         print (new_wallpaper)
 
 
